@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>露出計算アプリ v3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .version {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .input-button {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .input-button.file-btn {
+            background: linear-gradient(45deg, #fd79a8, #fdcb6e);
+        }
+
+        .input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .input-button:active {
+            transform: translateY(0);
+        }
+
+        .preview-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4facfe;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #007bff;
+            font-weight: 500;
+        }
+
+        .result-card {
+            background: linear-gradient(45deg, #a8edea, #fed6e3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .calculation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .calc-item {
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .calc-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        .nd-section {
+            border-top: 2px solid rgba(255,255,255,0.5);
+            padding-top: 20px;
+        }
+
+        .nd-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .nd-grid {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nd-item {
+            background: rgba(255,255,255,0.6);
+            padding: 12px;
+            border-radius: 10px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .nd-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .nd-value {
+            font-weight: 600;
+            color: #e74c3c;
+            font-size: 14px;
+        }
+
+        .loading, .error {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .loading {
+            color: #6c757d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 露出計算アプリ</h1>
+            <div class="version">Version 3.0</div>
+            <p>EXIFから等価露出を計算</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <input type="file" id="cameraInput" class="file-input" accept="image/*" capture="environment">
+                <input type="file" id="fileInput" class="file-input" accept="image/jpeg">
+                
+                <button class="input-button" onclick="document.getElementById('cameraInput').click()">
+                    📱 撮影
+                </button>
+                <button class="input-button file-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 ファイル
+                </button>
+            </div>
+
+            <div id="previewSection" class="preview-section" style="display: none;">
+                <img id="previewImage" class="preview-image" alt="選択した写真">
+            </div>
+
+            <div id="loadingSection" class="loading" style="display: none;">
+                📊 EXIF情報を解析中...
+            </div>
+
+            <div id="errorSection" class="error" style="display: none;"></div>
+
+            <div id="infoSection" class="info-card" style="display: none;">
+                <div class="info-row">
+                    <span class="info-label">ISO感度:</span>
+                    <span class="info-value" id="isoValue">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">F値:</span>
+                    <span class="info-value" id="apertureValue">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">シャッタースピード:</span>
+                    <span class="info-value" id="shutterValue">-</span>
+                </div>
+            </div>
+
+            <div id="resultSection" class="result-card" style="display: none;">
+                <div class="result-title">等価露出計算結果</div>
+                
+                <div class="calculation-grid">
+                    <div class="calc-item">
+                        <div class="calc-label">ISO400, F3.8</div>
+                        <div class="calc-value" id="calculatedShutter400">-</div>
+                    </div>
+                    <div class="calc-item">
+                        <div class="calc-label">ISO200, F2.0</div>
+                        <div class="calc-value" id="calculatedShutter200">-</div>
+                    </div>
+                </div>
+                
+                <div class="nd-section">
+                    <div class="nd-title">NDフィルター (ISO400基準)</div>
+                    <div class="nd-grid">
+                        <div class="nd-item">
+                            <div class="nd-label">ND2 (1段減光)</div>
+                            <div class="nd-value" id="nd2Shutter">-</div>
+                        </div>
+                        <div class="nd-item">
+                            <div class="nd-label">ND8 (3段減光)</div>
+                            <div class="nd-value" id="nd8Shutter">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+    <script>
+        const cameraInput = document.getElementById('cameraInput');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const loadingSection = document.getElementById('loadingSection');
+        const errorSection = document.getElementById('errorSection');
+        const infoSection = document.getElementById('infoSection');
+        const resultSection = document.getElementById('resultSection');
+
+        function hideAllSections() {
+            previewSection.style.display = 'none';
+            loadingSection.style.display = 'none';
+            errorSection.style.display = 'none';
+            infoSection.style.display = 'none';
+            resultSection.style.display = 'none';
+        }
+
+        function showError(message) {
+            hideAllSections();
+            errorSection.textContent = message;
+            errorSection.style.display = 'block';
+            errorSection.classList.add('fade-in');
+        }
+
+        function formatShutterSpeed(speed) {
+            if (speed >= 1) {
+                return speed.toFixed(1) + 's';
+            } else {
+                const fraction = Math.round(1 / speed);
+                return `1/${fraction}s`;
+            }
+        }
+
+        function calculateEquivalentExposure(originalISO, originalAperture, originalShutter, targetISO, targetAperture) {
+            // 露出等価の原理: (シャッタースピード × ISO) / F値² = 一定
+            const targetShutter = (originalShutter * originalISO * Math.pow(targetAperture, 2)) / 
+                                 (Math.pow(originalAperture, 2) * targetISO);
+            return targetShutter;
+        }
+
+        function processImageFile(file) {
+            if (!file) return;
+
+            if (!file.type.includes('jpeg') && !file.type.includes('jpg')) {
+                showError('JPEGファイルを選択してください');
+                return;
+            }
+
+            hideAllSections();
+            loadingSection.style.display = 'block';
+
+            // プレビュー表示
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewSection.style.display = 'block';
+                previewSection.classList.add('fade-in');
+            };
+            reader.readAsDataURL(file);
+
+            // EXIF解析
+            EXIF.getData(file, function() {
+                loadingSection.style.display = 'none';
+
+                try {
+                    const allData = EXIF.getAllTags(this);
+                    
+                    const iso = EXIF.getTag(this, 'ISOSpeedRatings') || allData.ISOSpeedRatings;
+                    const aperture = EXIF.getTag(this, 'FNumber') || allData.FNumber;
+                    const shutterSpeed = EXIF.getTag(this, 'ExposureTime') || allData.ExposureTime;
+
+                    if (!iso || !aperture || !shutterSpeed) {
+                        showError('必要なEXIF情報が見つかりません\n(ISO感度、F値、シャッタースピード)');
+                        return;
+                    }
+
+                    // 元の値を表示
+                    document.getElementById('isoValue').textContent = iso;
+                    document.getElementById('apertureValue').textContent = 'F' + aperture;
+                    document.getElementById('shutterValue').textContent = formatShutterSpeed(shutterSpeed);
+
+                    // 等価露出計算
+                    const shutter400_38 = calculateEquivalentExposure(iso, aperture, shutterSpeed, 400, 3.8);
+                    const shutter200_20 = calculateEquivalentExposure(iso, aperture, shutterSpeed, 200, 2.0);
+
+                    // NDフィルター計算 (ISO400基準)
+                    const nd2Shutter = shutter400_38 * 2;
+                    const nd8Shutter = shutter400_38 * 8;
+
+                    // 結果表示
+                    document.getElementById('calculatedShutter400').textContent = formatShutterSpeed(shutter400_38);
+                    document.getElementById('calculatedShutter200').textContent = formatShutterSpeed(shutter200_20);
+                    document.getElementById('nd2Shutter').textContent = formatShutterSpeed(nd2Shutter);
+                    document.getElementById('nd8Shutter').textContent = formatShutterSpeed(nd8Shutter);
+
+                    // セクション表示
+                    infoSection.style.display = 'block';
+                    resultSection.style.display = 'block';
+                    infoSection.classList.add('fade-in');
+                    resultSection.classList.add('fade-in');
+
+                } catch (error) {
+                    showError('EXIF解析中にエラーが発生しました');
+                }
+            });
+        }
+
+        // イベントリスナー
+        cameraInput.addEventListener('change', function(event) {
+            processImageFile(event.target.files[0]);
+        });
+
+        fileInput.addEventListener('change', function(event) {
+            processImageFile(event.target.files[0]);
+        });
+    </script>
+</body>
+</html>
